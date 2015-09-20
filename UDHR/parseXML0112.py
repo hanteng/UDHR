@@ -31,16 +31,16 @@ def parse_doc_tree_for_text(root):
     ##        print("%s - %s" % (element.tag, element.text))
     ##    else:
     ##        print("SPECIAL: %s - %s" % (element, element.text))
-    print "No of elements in results:", len(results)
-    print "No of elements with non-empty text in results:", len(r_non_empty)
+    print ("No of elements in results:{}".format( len(results) ))
+    print ("No of elements with non-empty text in results:{}".format( len(r_non_empty) ))
     r_no_empty_tags=[x.keys()[0] for x in r_non_empty]
     r_no_empty_content=[x.values()[0] for x in r_non_empty]
-    print "The set of tags that contain text:",set(r_no_empty_tags)
+    print ("The set of tags that contain text:{}".format( set(r_no_empty_tags) ))
     for i in set(r_no_empty_tags):
-        print "\t",i,":",r_no_empty_tags.count(i)
+        print ("\t{}:".fomrat( r_no_empty_tags.count(i) ))
 
     r=doc_tree.xpath("//*/n:para", namespaces={'n': 'http://www.unhchr.ch/udhr'})
-    print """Double check with xpath "//*/n:para":""", len(r)
+    print ("""Double check with xpath "//*/n:para": {}""".format(len(r)))
 
     return r_no_empty_tags, r_no_empty_content
 
@@ -53,7 +53,7 @@ import pandas as pd
 df_all=pd.DataFrame()
 
 for lang_code in lang_codes:
-    filename = "XML\udhr_%s.xml" % lang_code
+    filename = '''XML\\udhr_{}.xml'''.format(lang_code)
     doc_tree = etree.parse(filename, parser).getroot()
     #doc_tree = etree.parse(filename)
     r_tags, r_content=[],[]
@@ -72,7 +72,7 @@ for lang_code in lang_codes:
     else:
         df_all=df_all.append(df)
 
-print len(df_all)
+print (len(df_all))
 
 
 ## Constructing pivot tables for further analysis
@@ -84,7 +84,7 @@ def calculate_ratio(df, base):
     df=df.astype(float)
     #base='cmn_hant'
     for lang in df.columns.values:
-        if lang<>base:
+        if not (lang==base):
             df[lang]=df[lang]/df[base]
     lang=base
     df[lang]=df[lang]/df[base]
