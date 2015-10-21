@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 from lxml import etree
+import logging
+logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
+
 def parse_doc_tree_for_text(root):
     r_no_empty_tags=[]
     r_no_empty_content=[]
@@ -11,11 +15,11 @@ def parse_doc_tree_for_text(root):
 
     r_non_empty=[]
     for element in results:
-        if isinstance(element.tag, basestring):
+        if isinstance(element.tag, str):
             #stripping leading and ending spaces, including /n
             content=element.text 
             content=content.strip()
-            content_tag=string.replace(element.tag, '{'+ns['n']+'}', '')
+            content_tag=element.tag.replace('{'+ns['n']+'}', '')
             #if content <>'':
             if content =='':
                 pass
@@ -33,11 +37,12 @@ def parse_doc_tree_for_text(root):
     ##        print("SPECIAL: %s - %s" % (element, element.text))
     print ("No of elements in results:{}".format( len(results) ))
     print ("No of elements with non-empty text in results:{}".format( len(r_non_empty) ))
-    r_no_empty_tags=[x.keys()[0] for x in r_non_empty]
-    r_no_empty_content=[x.values()[0] for x in r_non_empty]
+    print (len(r_non_empty))
+    r_no_empty_tags=[list(x.keys())[0] for x in r_non_empty]
+    r_no_empty_content=[list(x.values())[0] for x in r_non_empty]
     print ("The set of tags that contain text:{}".format( set(r_no_empty_tags) ))
     for i in set(r_no_empty_tags):
-        print ("\t{}:".fomrat( r_no_empty_tags.count(i) ))
+        print ("\t{}:".format( r_no_empty_tags.count(i) ))
 
     r=doc_tree.xpath("//*/n:para", namespaces={'n': 'http://www.unhchr.ch/udhr'})
     print ("""Double check with xpath "//*/n:para": {}""".format(len(r)))
@@ -47,13 +52,15 @@ def parse_doc_tree_for_text(root):
 
 ## MAIN
 parser = etree.XMLParser(encoding='utf-8')
-lang_codes =["jpn","eng","cmn_hant","cmn_hans"]
+lang_codes =["mya", "njo", "ctd", "hlt", "cnh", "flm", "lus", "jpn","eng","cmn_hant","cmn_hans"]
+#udhr f="flm" iso639-3="cfm" bcp47="cfm"
 
 import pandas as pd
 df_all=pd.DataFrame()
 
 for lang_code in lang_codes:
-    filename = '''XML\\udhr_{}.xml'''.format(lang_code)
+    logger.info('Processing texts with language code {}'.format(lang_code))
+    filename = '''..\\XML\\udhr_{}.xml'''.format(lang_code)
     doc_tree = etree.parse(filename, parser).getroot()
     #doc_tree = etree.parse(filename)
     r_tags, r_content=[],[]
@@ -73,7 +80,7 @@ for lang_code in lang_codes:
         df_all=df_all.append(df)
 
 print (len(df_all))
-
+df_all.to_csv("r_UDHR.csv", encoding='utf-8')
 
 ## Constructing pivot tables for further analysis
 pivot_para = df_all[df_all["tag"]=="para" ].pivot(index='sn', columns='lang', values='length')
@@ -95,3 +102,6 @@ r_pivot_title=calculate_ratio(pivot_title, base='cmn_hant')
 
 r_pivot_para.to_pickle("r_UDHR_para.pkl")
 r_pivot_title.to_pickle("r_UDHR_title.pkl")
+
+r_pivot_para.to_csv("r_UDHR_para.csv")
+r_pivot_title.to_csv("r_UDHR_title.csv")
